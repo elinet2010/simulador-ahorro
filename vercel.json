@@ -2,7 +2,5 @@
   "version": 2,
   "installCommand": "cd apps/frontend && npm install",
   "buildCommand": "cd apps/frontend && npm run build",
-  "framework": "nextjs",
-  "outputDirectory": "apps/frontend/.next",
-  "rootDirectory": "apps/frontend"
+  "framework": "nextjs"
 }
