@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "npm run vercel:install",
-  "buildCommand": "npm run vercel:build",
+  "installCommand": "npm ci --prefix apps/frontend",
+  "buildCommand": "npm run build --prefix apps/frontend",
   "framework": "nextjs"
 }
