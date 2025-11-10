@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "installCommand": "npm ci --prefix apps/frontend",
-  "buildCommand": "npm run build --prefix apps/frontend",
-  "framework": "nextjs"
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter frontend build",
+  "framework": "nextjs",
+  "outputDirectory": "apps/frontend/.next"
 }

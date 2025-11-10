@@ -1,26 +1,24 @@
 {
-    "name": "simulador",
-    "version": "1.0.0",
-    "private": true,
-    "packageManager": "pnpm@9.12.3",
-    "author": "Elizabeth Velásquez",
-    "license": "MIT",
-    "homepage": "https://github.com/elinet2010/simulador-ahorro",
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/elinet2010/simulador-ahorro.git"
-    },
-    "scripts": {
-      "dev": "pnpm --filter frontend dev",
-      "dev:backend": "pnpm --filter backend start:dev",
-      "build": "pnpm --filter frontend build",
-      "build:backend": "pnpm --filter backend build",
-      "lint": "pnpm --filter frontend lint",
-      "clean": "pnpm --filter './apps/*' clean",
-      "vercel:install": "npm ci --prefix apps/frontend",
-      "vercel:build": "npm run build --prefix apps/frontend"
-    },
-    "devDependencies": {
-      "typescript": "^5.0.0"
-    }
+  "name": "simulador",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.12.3",
+  "author": "Elizabeth Velásquez",
+  "license": "MIT",
+  "homepage": "https://github.com/elinet2010/simulador-ahorro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elinet2010/simulador-ahorro.git"
+  },
+  "scripts": {
+    "dev": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend start:dev",
+    "build": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter backend build",
+    "lint": "pnpm --filter frontend lint",
+    "clean": "pnpm --filter './apps/*' clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
   }
+}
