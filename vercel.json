@@ -7,5 +7,6 @@
     }
   ],
   "buildCommand": "pnpm --filter frontend build",
-  "installCommand": "pnpm install"
+  "installCommand": "npm install",
+  "framework": "nextjs"
 }
