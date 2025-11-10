@@ -16,7 +16,9 @@
       "build": "pnpm --filter frontend build",
       "build:backend": "pnpm --filter backend build",
       "lint": "pnpm --filter frontend lint",
-      "clean": "pnpm --filter './apps/*' clean"
+      "clean": "pnpm --filter './apps/*' clean",
+      "vercel:install": "npm ci --prefix apps/frontend",
+      "vercel:build": "npm run build --prefix apps/frontend"
     },
     "devDependencies": {
       "typescript": "^5.0.0"
