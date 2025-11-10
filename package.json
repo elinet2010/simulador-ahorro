@@ -2,7 +2,7 @@
     "name": "simulador",
     "version": "1.0.0",
     "private": true,
-    "packageManager": "pnpm@10.20.0",
+    "packageManager": "pnpm@9.12.3",
     "author": "Elizabeth Velásquez",
     "license": "MIT",
     "homepage": "https://github.com/elinet2010/simulador-ahorro",
