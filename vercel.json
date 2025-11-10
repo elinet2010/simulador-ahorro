@@ -1,12 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "apps/frontend/next.config.js",
-      "use": "@vercel/next"
-    }
-  ],
+  "installCommand": "npm install -g pnpm && pnpm install",
   "buildCommand": "pnpm --filter frontend build",
-  "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "outputDirectory": "apps/frontend/.next"
 }
