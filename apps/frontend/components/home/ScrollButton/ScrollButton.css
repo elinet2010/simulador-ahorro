@@ -1,0 +1,54 @@
+/* Estilos críticos para ScrollButton - se cargan sin JS */
+.hero-scroll-button {
+  margin: 4rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 55px;
+  padding: 0;
+  background-color: var(--robin-egg-blue);
+  color: var(--timberwolf);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 206, 203, 0.4);
+  position: relative;
+  overflow: visible;
+}
+
+.hero-scroll-button:active {
+  transform: translateY(3px) scale(1.05);
+}
+
+.scroll-arrow {
+  width: 30px;
+  height: 30px;
+  animation: bounce 2s infinite;
+  transition: transform 0.3s ease;
+}
+
+.hero-scroll-button:hover .scroll-arrow {
+  animation: bounce 0.5s infinite;
+  transform: translateY(3px);
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8px);
+  }
+  60% {
+    transform: translateY(-4px);
+  }
+}
+
+
+

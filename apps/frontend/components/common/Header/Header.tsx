@@ -1,0 +1,221 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import './Header.css';
+import {
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Box,
+  useTheme,
+  Icon,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import SavingsIcon from '@mui/icons-material/Savings';
+
+const menuItems = [
+  { label: 'Inicio', href: '/' },
+  { label: 'Productos', href: '/products' },
+  { label: 'Simulador', href: '/simulator' },
+  { label: 'Onboarding', href: '/onboarding' },
+];
+
+export default function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [active, setActive] = useState<any>('')
+  const theme = useTheme();
+
+  // Marcar como montado después de la hidratación para evitar diferencias SSR
+  // Esto asegura que el Drawer solo se renderice en el cliente
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    console.log("router --<", window.location.pathname)
+    if (true) {
+      const _active = menuItems.find((item) => item.href === window.location.pathname)
+      setActive(_active?.label)
+      console.log("_active", _active)
+    }
+
+
+  }, [])
+
+  console.log("active...", active)
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const handleMenuClick = () => {
+    setMobileOpen(false);
+  };
+
+  const drawer = (
+    <Box
+      sx={{
+        width: 280,
+        height: '100%',
+        backgroundColor: theme.palette.background.default,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: 2,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Typography variant="h6" sx={{ color: theme.palette.primary.main, fontWeight: 700 }}>
+          Menú
+        </Typography>
+        <IconButton onClick={handleDrawerToggle} sx={{ color: theme.palette.text.primary }}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      <List>
+        {menuItems.map((item) => (
+          <ListItem key={item.label} disablePadding>
+            <ListItemButton
+              onClick={handleMenuClick}
+              component="a"
+              href={item.href}
+              className={active === item.label ? 'active': 'otro'}
+              sx={{
+                '&:hover, &.active': {
+                  backgroundColor: theme.palette.primary.light + '20',
+                },
+                backgroundColor: active === item.label ? theme.palette.primary.light + '20' : 'inherit'
+              }}
+            >
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  sx: {
+                    color: theme.palette.text.primary,
+                    fontWeight: 500,
+                  },
+                }}
+              />
+              {active === item.label}
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
+  // Renderizar un placeholder durante SSR para evitar diferencias de hidratación
+  if (!mounted) {
+    return (
+      <header
+        className="header-appbar"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '64px',
+          zIndex: 1000,
+        }}
+      />
+    );
+  }
+
+  return (
+    <>
+      <AppBar
+        position="fixed"
+        elevation={0}
+        className="header-appbar"
+      >
+        <Toolbar className="header-toolbar" >
+          <Typography
+            variant="h6"
+            component="a"
+            href="/"
+            className="header-logo"
+          >
+            <Icon
+              component={SavingsIcon}
+              className="header-logo-icon"
+            />
+            <Typography
+              component="span"
+              className="header-logo-text"
+            >
+              Ahorro Digital
+            </Typography>
+          </Typography>
+
+          {/* Menú desktop - oculto en móvil usando CSS en lugar de renderizado condicional */}
+          <Box
+            className="header-desktop-menu"
+            sx={{
+              display: { xs: 'none', md: 'flex' },
+              gap: 2,
+            }}
+          >
+            {menuItems.map((item) => (
+              <Typography
+                key={item.label}
+                component="a"
+                href={item.href}
+                className="header-menu-link"
+              >
+                {item.label}
+              </Typography>
+            ))}
+          </Box>
+
+          {/* Botón hamburguesa - solo visible en móvil usando CSS */}
+          <IconButton
+            color="primary"
+            aria-label="open drawer"
+            edge="end"
+            onClick={handleDrawerToggle}
+            className="header-menu-button"
+            sx={{
+              display: { xs: 'block', md: 'none' },
+              color: theme.palette.text.primary,
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+
+      {/* Drawer para móvil - solo renderizar después de montar para evitar hidratación */}
+      <Drawer
+        anchor="right"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Mejor rendimiento en móvil
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 280,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+    </>
+  );
+}
+
+
+

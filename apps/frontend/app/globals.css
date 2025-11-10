@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/* Variables de color del proyecto */
+:root {
+  --bittersweet: #ff5e5b;
+  --timberwolf: #d8d8d8;
+  --ivory: #ffffea;
+  --robin-egg-blue: #00cecb;
+  --maize: #ffed66;
+  --white: #ffffff;
+  --background: var(--ivory);
+  --foreground: #1a1a1a;
+  --violet: #511b96;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-bittersweet: var(--bittersweet);
+  --color-timberwolf: var(--timberwolf);
+  --color-ivory: var(--ivory);
+  --color-robin-egg-blue: var(--robin-egg-blue);
+  --color-maize: var(--maize);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background: var(--ivory);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Estilos globales - Variables y reset básico */
+/* Los estilos de componentes están en sus respectivos archivos CSS */

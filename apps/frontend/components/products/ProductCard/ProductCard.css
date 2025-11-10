@@ -1,0 +1,50 @@
+/* Estilos críticos para ProductCard - se cargan sin JS */
+.product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background-color: var(--white);
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 206, 203, 0.3);
+}
+
+.product-card-title {
+  color: var(--robin-egg-blue);
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.product-card-description {
+  color: var(--foreground);
+  margin-bottom: 1rem;
+  min-height: 3rem;
+  line-height: 1.6;
+}
+
+.product-card-button {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--bittersweet);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  opacity: 0.8;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.product-card-button:hover {
+  background-color: var(--bittersweet);
+  opacity: 1;
+  transform: scale(1.02);
+}
+

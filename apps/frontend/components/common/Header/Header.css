@@ -1,0 +1,99 @@
+/* Estilos críticos para Header - se cargan sin JS */
+.header-appbar {
+  background-color: var(--robin-egg-blue);
+  color: var(--robin-egg-blue);
+  border-bottom: 1px solid var(--divider);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 64px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.header-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+  padding: 0 1rem;
+}
+
+.header-logo {
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1.7rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 250px;
+}
+
+.header-logo svg {
+  width: 35px;
+  height: 35px;
+}
+
+.header-logo svg path {
+  fill: var(--timberwolf);
+}
+
+.header-logo-text {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--white);
+  text-shadow: 
+    -1px -1px -1px var(--robin-egg-blue),
+    0 0 2px var(--white),
+    0 1px 2px var(--white),
+    1px 1px 1px var(--white);
+}
+
+.header-logo-icon {
+  width: 35px;
+  height: 35px;
+}
+
+.header-logo:hover {
+  opacity: 0.8;
+}
+
+.header-menu-button {
+  display: none;
+  color: var(--foreground);
+  padding: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .header-menu-button {
+    display: block;
+  }
+  
+  .header-desktop-menu {
+    display: none;
+  }
+}
+
+.header-desktop-menu {
+  display: flex;
+  gap: 1rem;
+}
+
+.header-menu-link {
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.header-menu-link:hover {
+  background-color: var(--white);
+  color: var(--robin-egg-blue);
+}
+
+
+

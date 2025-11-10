@@ -1,0 +1,51 @@
+/* Estilos críticos para página de productos - se cargan sin JS */
+.products-page {
+  min-height: 100vh;
+  background-color: var(--ivory);
+}
+
+.products-page-header {
+  background-color: var(--ivory);
+  color: var(--bittersweet);
+  padding: 3rem  1rem 1rem;
+  margin: 64px auto 0;
+}
+
+.products-page-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--violet);
+}
+
+.products-page-subtitle {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  opacity: 0.8;
+  color: var(--foreground);
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.products-page-grid {
+  margin-bottom: 2rem;
+}
+
+.products-page-grid-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 1rem;
+}
+
