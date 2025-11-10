@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "cd apps/frontend && npm install",
+  "installCommand": "cd apps/frontend && npm ci",
   "buildCommand": "cd apps/frontend && npm run build",
   "framework": "nextjs"
 }
