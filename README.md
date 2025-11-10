@@ -4,7 +4,7 @@ Aplicación web desarrollada con Next.js para mostrar productos de ahorro digita
 
 ## 🚀 Demo
 
-[Ver en producción](https://tu-proyecto.vercel.app) (actualizar con tu URL de Vercel)
+[Ver en producción]https://simulador-ahorro-front.vercel.app/
 
 ## 🛠️ Stack Tecnológico
 
@@ -17,7 +17,6 @@ Aplicación web desarrollada con Next.js para mostrar productos de ahorro digita
 - **Tailwind CSS** - Estilos utilitarios
 - **pnpm** - Gestor de paquetes con workspaces
 - **reCAPTCHA v3** - Protección contra spam
-- **Recharts** - Gráficos y visualización de datos0
 
 ## 📋 Prerrequisitos
 
@@ -155,157 +154,6 @@ const response = await fetch('/api/onboarding', {
   })
 });
 ```
-
-## 🚀 Despliegue en Vercel
-
-### Pasos rápidos:
-
-1. **Subir a GitHub** (si no lo has hecho):
-   ```bash
-   git add .
-   git commit -m "Preparar para despliegue"
-   git push origin master
-   ```
-
-2. **Conectar con Vercel**:
-   - Ve a [vercel.com](https://vercel.com)
-   - Inicia sesión con GitHub
-   - Click en "Add New..." → "Project"
-   - Selecciona el repositorio `elinet2010/simulador-ahorro`
-
-3. **Configuración automática**:
-   - Vercel detectará automáticamente Next.js
-   - Root Directory: `apps/frontend`
-   - Build Command: `pnpm --filter frontend build`
-   - Install Command: `pnpm install`
-
-4. **Variables de entorno en Vercel**:
-   En el dashboard de Vercel → Settings → Environment Variables, agrega:
-   ```
-   NEXT_PUBLIC_RECAPTCHA_SITE_KEY=tu_site_key_produccion
-   RECAPTCHA_SECRET_KEY=tu_secret_key_produccion
-   ```
-
-5. **Desplegar**:
-   - Click en "Deploy"
-   - Espera a que termine el proceso
-   - Tu app estará en: `https://tu-proyecto.vercel.app`
-
-### Actualizaciones automáticas
-
-Cada vez que hagas `git push`, Vercel desplegará automáticamente:
-
-```bash
-git add .
-git commit -m "Descripción de cambios"
-git push origin master
-```
-
-📖 **Documentación completa:** Ver [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) para más detalles.
-
-## 📦 Comandos útiles
-
-### Desde la raíz del proyecto
-
-```bash
-# Desarrollo
-pnpm dev                    # Inicia el servidor de desarrollo del frontend
-
-# Build
-pnpm build                  # Construye el frontend para producción
-
-# Linting
-pnpm lint                   # Ejecuta el linter en el frontend
-
-# Limpieza
-pnpm clean                  # Limpia los builds de todos los workspaces
-```
-
-### Gestión de dependencias
-
-```bash
-# Agregar dependencia al frontend
-pnpm --filter frontend add <paquete>
-
-# Agregar dependencia de desarrollo
-pnpm --filter frontend add -D <paquete>
-
-# Ver estructura de dependencias
-pnpm list --depth=0
-```
-
-### Desde apps/frontend
-
-```bash
-cd apps/frontend
-
-pnpm dev                    # Inicia el servidor de desarrollo
-pnpm build                  # Construye para producción
-pnpm start                  # Inicia el servidor de producción
-pnpm lint                   # Ejecuta ESLint
-```
-
-## 🔧 Configuración de reCAPTCHA
-
-1. Obtén tus keys en [Google reCAPTCHA Admin](https://www.google.com/recaptcha/admin)
-2. Configura reCAPTCHA v3 para tu dominio
-3. Agrega las keys en `.env.local` (desarrollo) o en Vercel (producción)
-
-📖 **Documentación:** Ver [apps/frontend/CONFIGURAR_RECAPTCHA.md](./apps/frontend/CONFIGURAR_RECAPTCHA.md)
-
-## 🐛 Solución de problemas
-
-### Error: pnpm no encontrado
-
-```bash
-npm install -g pnpm
-```
-
-### Error: Dependencias no instaladas
-
-```bash
-# Desde la raíz
-pnpm install
-```
-
-### Error: Puerto 3000 en uso
-
-Cambia el puerto en `apps/frontend/package.json`:
-
-```json
-{
-  "scripts": {
-    "dev": "next dev -p 3001"
-  }
-}
-```
-
-### Limpiar todo y reinstalar
-
-```bash
-# Limpiar node_modules
-pnpm --filter './apps/*' exec rm -rf node_modules
-rm -rf node_modules
-
-# Limpiar cache
-pnpm store prune
-
-# Reinstalar
-pnpm install
-```
-
-### Error: reCAPTCHA no funciona
-
-- Verifica que las variables de entorno estén configuradas
-- Asegúrate de usar reCAPTCHA v3
-- Verifica que el dominio esté registrado en Google reCAPTCHA
-
-## 📚 Documentación adicional
-
-- [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) - Guía completa de despliegue en Vercel
-- [apps/frontend/CONFIGURAR_RECAPTCHA.md](./apps/frontend/CONFIGURAR_RECAPTCHA.md) - Configuración de reCAPTCHA
-- [PLAN.md](./PLAN.md) - Plan de desarrollo y arquitectura
-
 ## 🔗 Recursos externos
 
 - [Documentación de Next.js](https://nextjs.org/docs)
