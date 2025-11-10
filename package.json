@@ -4,10 +4,10 @@
     "private": true,
     "author": "Elizabeth Velásquez",
     "license": "MIT",
-    "homepage": "https://github.com/elizabethvelasquez/simulador",
+    "homepage": "https://github.com/elinet2010/simulador-ahorro",
     "repository": {
       "type": "git",
-      "url": "https://github.com/elizabethvelasquez/simulador.git"
+      "url": "https://github.com/elinet2010/simulador-ahorro.git"
     },
     "scripts": {
       "dev": "pnpm --filter frontend dev",
