@@ -6,7 +6,7 @@
       "use": "@vercel/next"
     }
   ],
-  "buildCommand": "pnpm --filter frontend exec next build --no-cache",
+  "buildCommand": "pnpm --filter frontend build",
   "installCommand": "npm install",
   "framework": "nextjs"
 }
