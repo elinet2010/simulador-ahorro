@@ -1,5 +1,9 @@
 'use client';
 
+// Evitar prerender de esta página
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function GlobalError({
   error,
   reset,
@@ -7,9 +11,21 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Función de reset que se ejecuta solo en el cliente
+  const handleReset = () => {
+    if (typeof window !== 'undefined' && reset) {
+      reset();
+    }
+  };
+
   return (
     <html lang="es">
-      <body>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Error - Simulador de Ahorro Digital</title>
+      </head>
+      <body style={{ margin: 0, padding: 0, fontFamily: 'system-ui, sans-serif' }}>
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -18,7 +34,6 @@ export default function GlobalError({
           minHeight: '100vh',
           padding: '2rem',
           textAlign: 'center',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
         }}>
           <h1 style={{ fontSize: '2rem', marginBottom: '1rem', color: '#1a1a1a' }}>
             Algo salió mal
@@ -27,7 +42,7 @@ export default function GlobalError({
             Ha ocurrido un error inesperado. Por favor, intenta nuevamente.
           </p>
           <button
-            onClick={reset}
+            onClick={handleReset}
             style={{
               padding: '0.75rem 1.5rem',
               backgroundColor: '#00cecb',

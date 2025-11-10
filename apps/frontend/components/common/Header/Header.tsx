@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 import './Header.css';
 import {
   AppBar,
@@ -44,18 +43,19 @@ function HeaderContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState<string>('');
-  const pathname = usePathname();
   const theme = useTheme();
   
   // Marcar como montado después de la hidratación para evitar diferencias SSR
+  // Y actualizar active basado en la ruta actual
   useEffect(() => {
     setMounted(true);
+    // Actualizar active basado en la ruta actual después de montar
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      const _active = menuItems.find((item) => item.href === currentPath);
+      setActive(_active?.label || '');
+    }
   }, []);
-
-  useEffect(() => {
-    const _active = menuItems.find((item) => item.href === pathname);
-    setActive(_active?.label || '');
-  }, [pathname])
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
