@@ -41,21 +41,18 @@ const defaultTheme = createTheme({
 
 function HeaderContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState<string>('');
   const theme = useTheme();
   
-  // Marcar como montado después de la hidratación para evitar diferencias SSR
-  // Y actualizar active basado en la ruta actual
+  // Actualizar active basado en la ruta actual después de montar
   useEffect(() => {
-    setMounted(true);
-    // Actualizar active basado en la ruta actual después de montar
     if (typeof window !== 'undefined') {
       const currentPath = window.location.pathname;
       const _active = menuItems.find((item) => item.href === currentPath);
       setActive(_active?.label || '');
     }
   }, []);
+  
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -119,24 +116,6 @@ function HeaderContent() {
       </List>
     </Box>
   );
-
-  // Renderizar un placeholder durante SSR para evitar diferencias de hidratación
-  if (!mounted) {
-    return (
-      <header
-        className="header-appbar"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '64px',
-          zIndex: 1000,
-          backgroundColor: '#ffffea',
-        }}
-      />
-    );
-  }
 
   return (
     <>
