@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import './Header.css';
 import {
   AppBar,
@@ -15,6 +16,8 @@ import {
   Box,
   useTheme,
   Icon,
+  ThemeProvider,
+  createTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,30 +30,32 @@ const menuItems = [
   { label: 'Onboarding', href: '/onboarding' },
 ];
 
-export default function Header() {
+// Tema por defecto para usar cuando el ThemeProvider no está disponible
+const defaultTheme = createTheme({
+  palette: {
+    background: { default: '#ffffea' },
+    primary: { main: '#00cecb', light: '#00cecb' },
+    text: { primary: '#1a1a1a' },
+    divider: '#d8d8d8',
+  },
+});
+
+function HeaderContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [active, setActive] = useState<any>('')
+  const [active, setActive] = useState<string>('');
+  const pathname = usePathname();
   const theme = useTheme();
-
+  
   // Marcar como montado después de la hidratación para evitar diferencias SSR
-  // Esto asegura que el Drawer solo se renderice en el cliente
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    console.log("router --<", window.location.pathname)
-    if (true) {
-      const _active = menuItems.find((item) => item.href === window.location.pathname)
-      setActive(_active?.label)
-      console.log("_active", _active)
-    }
-
-
-  }, [])
-
-  console.log("active...", active)
+    const _active = menuItems.find((item) => item.href === pathname);
+    setActive(_active?.label || '');
+  }, [pathname])
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -127,6 +132,7 @@ export default function Header() {
           right: 0,
           height: '64px',
           zIndex: 1000,
+          backgroundColor: '#ffffea',
         }}
       />
     );
@@ -214,6 +220,16 @@ export default function Header() {
         {drawer}
       </Drawer>
     </>
+  );
+}
+
+export default function Header() {
+  // Envolver en ThemeProvider para asegurar que siempre haya un tema disponible
+  // Esto previene errores cuando el Header se renderiza fuera del Providers del layout
+  return (
+    <ThemeProvider theme={defaultTheme}>
+      <HeaderContent />
+    </ThemeProvider>
   );
 }
 
