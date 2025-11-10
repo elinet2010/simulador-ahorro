@@ -60,25 +60,14 @@
   opacity: 0.8;
 }
 
-.header-menu-button {
-  display: none;
-  color: var(--foreground);
-  padding: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .header-menu-button {
-    display: block;
-  }
-  
-  .header-desktop-menu {
-    display: none;
-  }
-}
+/* El botón del menú móvil se controla con Material-UI sx prop, no con CSS */
 
 .header-desktop-menu {
-  display: flex;
+  display: none;
   gap: 1rem;
+  @media (min-width: 900px) {
+    display: flex;
+  }
 }
 
 .header-menu-link {
@@ -90,10 +79,11 @@
   transition: background-color 0.2s;
 }
 
-.header-menu-link:hover {
+.header-menu-link:hover, .header-menu-link.active {
   background-color: var(--white);
   color: var(--robin-egg-blue);
 }
+
 
 
 

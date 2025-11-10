@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import './Header.css';
 import {
   AppBar,
@@ -41,17 +42,11 @@ const defaultTheme = createTheme({
 
 function HeaderContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [active, setActive] = useState<string>('');
+  const pathname = usePathname();
   const theme = useTheme();
   
-  // Actualizar active basado en la ruta actual después de montar
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentPath = window.location.pathname;
-      const _active = menuItems.find((item) => item.href === currentPath);
-      setActive(_active?.label || '');
-    }
-  }, []);
+  // Obtener el item activo basado en la ruta actual
+  const active = menuItems.find((item) => item.href === pathname)?.label || '';
   
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -109,7 +104,6 @@ function HeaderContent() {
                   },
                 }}
               />
-              {active === item.label}
             </ListItemButton>
           </ListItem>
         ))}
@@ -120,6 +114,7 @@ function HeaderContent() {
   return (
     <>
       <AppBar
+        component="header"
         position="fixed"
         elevation={0}
         className="header-appbar"
@@ -156,22 +151,21 @@ function HeaderContent() {
                 key={item.label}
                 component="a"
                 href={item.href}
-                className="header-menu-link"
+                className={`${active === item.label ? 'active' : ''} header-menu-link`}
               >
                 {item.label}
               </Typography>
             ))}
           </Box>
 
-          {/* Botón hamburguesa - solo visible en móvil usando CSS */}
+          {/* Botón hamburguesa - solo visible en móvil */}
           <IconButton
             color="primary"
             aria-label="open drawer"
             edge="end"
             onClick={handleDrawerToggle}
-            className="header-menu-button"
             sx={{
-              display: { xs: 'block', md: 'none' },
+              display: { xs: 'flex', md: 'none' },
               color: theme.palette.text.primary,
             }}
           >
@@ -180,7 +174,7 @@ function HeaderContent() {
         </Toolbar>
       </AppBar>
 
-      {/* Drawer para móvil - solo renderizar después de montar para evitar hidratación */}
+      {/* Drawer para móvil */}
       <Drawer
         anchor="right"
         open={mobileOpen}
