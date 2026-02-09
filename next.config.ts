@@ -136,15 +136,15 @@ const nextConfig: NextConfig = {
         source: "/onboarding/:path*",
         destination: `${MICROFRONTEND_ONBOARDING_URL}/onboarding/:path*`,
       },
-      // Ruta base /author -> redirige a la raíz del microfrontend AUTHOR
+      // Ruta base /author -> redirige a /author del microfrontend
       {
         source: "/author",
-        destination: `${MICROFRONTEND_AUTHOR_URL}/author`,
+        destination: `${MICROFRONTEND_AUTHOR_URL}`,
       },
-      // Rutas con sub-paths /author/* -> preserva el path completo
+      // Rutas con sub-paths /author/* -> preserva el path
       {
         source: "/author/:path*",
-        destination: `${MICROFRONTEND_AUTHOR_URL}/author/:path*`,
+        destination: `${MICROFRONTEND_AUTHOR_URL}/:path*`,
       },
     ];
   },
