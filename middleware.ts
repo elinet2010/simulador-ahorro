@@ -4,19 +4,35 @@ import type { NextRequest } from 'next/server';
 // URLs de los microfrontends
 const MICROFRONTEND_SIMULATOR_URL =
   process.env.NEXT_PUBLIC_MICROFRONTEND_SIMULATOR_URL ||
-  'https://nextjs-search-ten.vercel.app';
+  'https://simulador-ahorro-front.vercel.app';
+const MICROFRONTEND_AUTHOR_URL =
+  process.env.NEXT_PUBLIC_MICROFRONTEND_AUTHOR_URL ||
+  'https://elizabeth-velasquez.vercel.app';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Determinar qué microfrontend usar según la ruta
+  let microfrontendBaseUrl: string;
+  let microfrontendPath: string;
+
+  if (pathname.startsWith('/author')) {
+    microfrontendBaseUrl = MICROFRONTEND_AUTHOR_URL;
+    // Para /author, preservar el path completo incluyendo /author
+    microfrontendPath = pathname;
+  } else if (pathname.startsWith('/simulator') || pathname.startsWith('/onboarding') ) {
+    microfrontendBaseUrl = MICROFRONTEND_SIMULATOR_URL;
+    microfrontendPath = pathname.replace('/simulator', '').replace('/onboarding', '') || '/';
+  } else {
+    return NextResponse.next();
+  }
+
   // Interceptar el HTML del microfrontend y reescribir URLs relativas a absolutas
-  if (pathname.startsWith('/nuevo') || pathname.startsWith('/simulator')) {
-    try {
-      const microfrontendPath = pathname.replace('/nuevo', '').replace('/simulator', '') || '/';
-      const microfrontendUrl = new URL(microfrontendPath, MICROFRONTEND_SIMULATOR_URL);
+  try {
+    const microfrontendUrl = new URL(microfrontendPath, microfrontendBaseUrl);
       
       // Agregar query params si existen
-      request.nextUrl.searchParams.forEach((value, key) => {
+      request.nextUrl.searchParams.forEach((value: string, key: string) => {
         microfrontendUrl.searchParams.set(key, value);
       });
 
@@ -36,7 +52,7 @@ export async function middleware(request: NextRequest) {
 
       // Reescribir URLs relativas a absolutas en el HTML
       // Esto es necesario porque el navegador resuelve las rutas relativas desde el dominio actual
-      const baseUrl = MICROFRONTEND_SIMULATOR_URL.replace(/\/$/, '');
+      const baseUrl = microfrontendBaseUrl.replace(/\/$/, '');
       
       // Función helper para reescribir URLs relativas
       const rewriteUrl = (url: string): string => {
@@ -146,25 +162,22 @@ export async function middleware(request: NextRequest) {
         }
       );
 
-      return new NextResponse(html, {
-        status: response.status,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-        },
-      });
-    } catch (error) {
-      console.error('Error fetching microfrontend:', error);
-      return NextResponse.next();
-    }
+    return new NextResponse(html, {
+      status: response.status,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching microfrontend:', error);
+    return NextResponse.next();
   }
-
-  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    '/nuevo/:path*',
+    '/author/:path*',
     '/simulator/:path*',
   ],
 };

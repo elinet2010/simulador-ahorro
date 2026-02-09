@@ -3,10 +3,13 @@ import type { NextConfig } from "next";
 // URLs de los microfrontends desde variables de entorno
 const MICROFRONTEND_SIMULATOR_URL =
   process.env.NEXT_PUBLIC_MICROFRONTEND_SIMULATOR_URL ||
-  "https://nextjs-search-ten.vercel.app";
+  "https://simulador-ahorro-front.vercel.app";
 const MICROFRONTEND_ONBOARDING_URL =
   process.env.NEXT_PUBLIC_MICROFRONTEND_ONBOARDING_URL ||
-  "https://nextjs-search-ten.vercel.app";
+  "https://simulador-ahorro-front.vercel.app";
+const MICROFRONTEND_AUTHOR_URL =
+  process.env.NEXT_PUBLIC_MICROFRONTEND_AUTHOR_URL ||
+  "https://elizabeth-velasquez.vercel.app";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -26,8 +29,42 @@ const nextConfig: NextConfig = {
     }
 
     return [
-      // Rewrites para recursos estáticos del microfrontend (CSS, JS, imágenes, etc.)
+      // Rewrites para recursos estáticos del microfrontend AUTHOR (CSS, JS, imágenes, etc.)
       // Estos deben ir ANTES de las rutas de contenido para tener prioridad
+      // Recursos estáticos de Next.js para /author
+      {
+        source: "/author/_next/static/:path*",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/_next/static/:path*`,
+      },
+      {
+        source: "/author/_next/image",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/_next/image`,
+      },
+      {
+        source: "/author/_next/webpack-hmr",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/_next/webpack-hmr`,
+      },
+      {
+        source: "/author/static/:path*",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/static/:path*`,
+      },
+      {
+        source: "/author/images/:path*",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/images/:path*`,
+      },
+      {
+        source: "/author/img/:path*",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/img/:path*`,
+      },
+      {
+        source: "/author/assets/:path*",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/assets/:path*`,
+      },
+      {
+        source: "/author/public/:path*",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/public/:path*`,
+      },
+      // Rewrites para recursos estáticos del microfrontend SIMULATOR (CSS, JS, imágenes, etc.)
       {
         source: "/_next/static/:path*",
         destination: `${MICROFRONTEND_SIMULATOR_URL}/_next/static/:path*`,
@@ -96,6 +133,16 @@ const nextConfig: NextConfig = {
       {
         source: "/onboarding/:path*",
         destination: `${MICROFRONTEND_ONBOARDING_URL}/onboarding/:path*`,
+      },
+      // Ruta base /author -> redirige a /author del microfrontend
+      {
+        source: "/author",
+        destination: `${MICROFRONTEND_AUTHOR_URL}`,
+      },
+      // Rutas con sub-paths /author/* -> preserva el path
+      {
+        source: "/author/:path*",
+        destination: `${MICROFRONTEND_AUTHOR_URL}/:path*`,
       },
     ];
   },
@@ -207,6 +254,85 @@ const nextConfig: NextConfig = {
           {
             key: "X-Forwarded-Proto",
             value: process.env.NODE_ENV === "production" ? "https" : "http",
+          },
+        ],
+      },
+      {
+        source: "/author/:path*",
+        headers: [
+          {
+            key: "X-Forwarded-Host",
+            value: process.env.NEXT_PUBLIC_APP_URL || "localhost:3000",
+          },
+          {
+            key: "X-Forwarded-Proto",
+            value: process.env.NODE_ENV === "production" ? "https" : "http",
+          },
+        ],
+      },
+      {
+        // Headers para recursos estáticos del microfrontend AUTHOR
+        source: "/author/_next/static/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, OPTIONS",
+          },
+        ],
+      },
+      {
+        source: "/author/images/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, OPTIONS",
+          },
+        ],
+      },
+      {
+        source: "/author/img/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, OPTIONS",
+          },
+        ],
+      },
+      {
+        source: "/author/assets/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, OPTIONS",
+          },
+        ],
+      },
+      {
+        source: "/author/static/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET, OPTIONS",
           },
         ],
       },
