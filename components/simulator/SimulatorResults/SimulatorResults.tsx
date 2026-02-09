@@ -106,9 +106,11 @@ export default function SimulatorResults({ product }: SimulatorResultsProps) {
 
 
       <Divider sx={{ my: 4 }} />
-      <Button variant="contained" color="secondary" onClick={() => router.push('/products')}>
-        Ver otros productos <ArrowForwardIcon />
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        <Button variant="contained" color="secondary" onClick={() => router.push('/products')}>
+          Ver otros productos  &nbsp; <ArrowForwardIcon />
+        </Button>
+      </Box>
     </Paper>
   );
 }

@@ -27,8 +27,8 @@ export default function CurrencyInput({
       value={displayValue}
       onChange={handleChange}
       inputProps={{
-        inputMode: 'numeric',
-        pattern: '[0-9]*',
+        inputMode: 'text',
+        pattern: '[0-9.]*',
       }}
     />
   );

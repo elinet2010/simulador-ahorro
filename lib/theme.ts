@@ -46,6 +46,7 @@ export const theme = createTheme({
       secondary: '#666666',
       tertiary: colors.violet,  // Violeta oscuro
     },
+    divider: colors.timberwolf, // #d8d8d8
     grey: {
       100: colors.timberwolf,
       200: '#c8c8c8',
