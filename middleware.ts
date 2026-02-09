@@ -5,15 +5,160 @@ import type { NextRequest } from 'next/server';
 const MICROFRONTEND_SIMULATOR_URL =
   process.env.NEXT_PUBLIC_MICROFRONTEND_SIMULATOR_URL ||
   'https://simulador-ahorro-front.vercel.app';
+const MICROFRONTEND_ONBOARDING_URL =
+  process.env.NEXT_PUBLIC_MICROFRONTEND_ONBOARDING_URL ||
+  'https://simulador-ahorro-front.vercel.app';
 const MICROFRONTEND_AUTHOR_URL =
   process.env.NEXT_PUBLIC_MICROFRONTEND_AUTHOR_URL ||
   'https://elizabeth-velasquez.vercel.app';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  console.log(`[Middleware] Processing: ${pathname}, referer: ${request.headers.get('referer') || 'none'}`);
+
+  // PRIORIDAD 1: Si es /author o /author/*, procesarlo directamente
+  if (pathname === '/author' || pathname.startsWith('/author/')) {
+    console.log(`[Middleware] Processing /author route: ${pathname}`);
+    const microfrontendBaseUrl = MICROFRONTEND_AUTHOR_URL;
+    // Para /author, siempre ir a la raíz del microfrontend (/)
+    // Para /author/algo, ir a /algo del microfrontend
+    let microfrontendPath: string;
+    if (pathname === '/author') {
+      microfrontendPath = '/';
+    } else {
+      microfrontendPath = pathname.replace('/author', '');
+    }
+    const microfrontendUrl = new URL(microfrontendPath, microfrontendBaseUrl);
+    
+    request.nextUrl.searchParams.forEach((value: string, key: string) => {
+      microfrontendUrl.searchParams.set(key, value);
+    });
+
+    console.log(`[Middleware] Fetching AUTHOR: ${microfrontendUrl.toString()}`);
+
+    try {
+      // Agregar timeout para evitar que el fetch se quede colgado
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+      
+      const response = await fetch(microfrontendUrl.toString(), {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': request.headers.get('user-agent') || '',
+          'Accept': request.headers.get('accept') || 'text/html',
+          'Accept-Language': request.headers.get('accept-language') || 'es',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        let html = await response.text();
+        const baseUrl = microfrontendBaseUrl.replace(/\/$/, '');
+        
+        // Si estamos en /author, necesitamos reescribir las referencias a la URL en el JavaScript
+        // para que Next.js piense que está en / en lugar de /author
+        if (pathname === '/author') {
+          // Reescribir urlParts para que apunte a la raíz
+          html = html.replace(/"urlParts":\["","[^"]*"\]/g, '"urlParts":["",""]');
+          // Reescribir initialTree para que apunte a la raíz en lugar de /_not-found
+          html = html.replace(/"initialTree":\["",\{"children":\["\/_not-found"/g, '"initialTree":["",{"children":["__PAGE__"');
+          html = html.replace(/"initialTree":\["",\{"children":\["\/author"/g, '"initialTree":["",{"children":["__PAGE__"');
+        }
+        
+        // Reescribir URLs (usar función helper de abajo)
+        html = html.replace(/\s(href|src)=["']([^"']+)["']/gi, (match, attr, url) => {
+          if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//') || url.startsWith('data:') || url.startsWith('#')) {
+            return match;
+          }
+          if (url.startsWith('/')) {
+            return ` ${attr}="${baseUrl}${url}"`;
+          }
+          return match;
+        });
+        
+        html = html.replace(/srcset=["']([^"']+)["']/gi, (match, srcset) => {
+          const rewritten = srcset.split(',').map((item: string) => {
+            const parts = item.trim().split(/\s+/);
+            const url = parts[0];
+            const descriptor = parts.slice(1).join(' ');
+            if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//') || url.startsWith('data:')) {
+              return item;
+            }
+            if (url.startsWith('/')) {
+              return `${baseUrl}${url}${descriptor ? ' ' + descriptor : ''}`;
+            }
+            return item;
+          }).join(', ');
+          return `srcset="${rewritten}"`;
+        });
+
+        console.log(`[Middleware] Successfully fetched and processed AUTHOR HTML`);
+        return new NextResponse(html, {
+          status: response.status,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        });
+      } else {
+        console.error(`[Middleware] Failed to fetch AUTHOR: ${response.status} ${response.statusText} from ${microfrontendUrl.toString()}`);
+        // Si es 404, intentar redirigir al home del microfrontend
+        if (response.status === 404 && pathname !== '/author') {
+          console.log(`[Middleware] 404 for ${pathname}, trying home instead`);
+          const homeUrl = new URL('/', microfrontendBaseUrl);
+          try {
+            const homeResponse = await fetch(homeUrl.toString(), {
+              headers: {
+                'User-Agent': request.headers.get('user-agent') || '',
+                'Accept': request.headers.get('accept') || 'text/html',
+                'Accept-Language': request.headers.get('accept-language') || 'es',
+              },
+            });
+            if (homeResponse.ok) {
+              let html = await homeResponse.text();
+              const baseUrl = microfrontendBaseUrl.replace(/\/$/, '');
+              html = html.replace(/\s(href|src)=["']([^"']+)["']/gi, (match, attr, url) => {
+                if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//') || url.startsWith('data:') || url.startsWith('#')) {
+                  return match;
+                }
+                if (url.startsWith('/')) {
+                  return ` ${attr}="${baseUrl}${url}"`;
+                }
+                return match;
+              });
+              return new NextResponse(html, {
+                status: homeResponse.status,
+                headers: {
+                  'Content-Type': 'text/html; charset=utf-8',
+                  'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+                },
+              });
+            }
+          } catch (homeError) {
+            console.error('[Middleware] Error fetching home as fallback:', homeError);
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('[Middleware] Error fetching AUTHOR:', error);
+      if (error.name === 'AbortError') {
+        console.error('[Middleware] Fetch timeout for AUTHOR microfrontend');
+      }
+    }
+    
+    // Si falla, continuar con el flujo normal (rewrites de next.config.ts)
+    // Los rewrites deberían manejar esto automáticamente
+    console.log(`[Middleware] Falling back to Next.js rewrites for /author`);
+    return NextResponse.next();
+  }
 
   // Si es un recurso estático que viene de /author, redirigirlo al microfrontend AUTHOR
   // Esto es necesario porque los rewrites genéricos redirigen al SIMULATOR
+  const referer = request.headers.get('referer');
+  const isFromAuthor = referer?.includes('/author');
+  
   if (
     (pathname.startsWith('/_next/') ||
      pathname.startsWith('/static/') ||
@@ -21,11 +166,20 @@ export async function middleware(request: NextRequest) {
      pathname.startsWith('/img/') ||
      pathname.startsWith('/assets/') ||
      pathname.startsWith('/public/')) &&
-    request.headers.get('referer')?.includes('/author')
+    isFromAuthor
   ) {
     // Redirigir recursos estáticos al microfrontend AUTHOR si vienen de /author
     const resourcePath = pathname;
-    const authorUrl = `${MICROFRONTEND_AUTHOR_URL}${resourcePath}`;
+    let authorUrl: string;
+    
+    // Manejar _next/image especialmente - necesita preservar los query params
+    if (pathname === '/_next/image') {
+      const searchParams = request.nextUrl.searchParams.toString();
+      authorUrl = `${MICROFRONTEND_AUTHOR_URL}${resourcePath}${searchParams ? '?' + searchParams : ''}`;
+      console.log(`[Middleware] Redirecting _next/image to AUTHOR: ${authorUrl}`);
+    } else {
+      authorUrl = `${MICROFRONTEND_AUTHOR_URL}${resourcePath}`;
+    }
     
     try {
       const resourceResponse = await fetch(authorUrl, {
@@ -46,6 +200,8 @@ export async function middleware(request: NextRequest) {
             'Cache-Control': 'public, max-age=31536000, immutable',
           },
         });
+      } else {
+        console.error(`[Middleware] Failed to fetch resource from AUTHOR: ${resourceResponse.status} ${resourceResponse.statusText}`);
       }
     } catch (error) {
       console.error('Error fetching resource from AUTHOR microfrontend:', error);
@@ -67,30 +223,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Determinar qué microfrontend usar según la ruta
-  let microfrontendBaseUrl: string;
-  let microfrontendPath: string;
+  // Interceptar rutas del microfrontend AUTHOR que vienen sin prefijo /author
+  // Estas rutas son: /work, /about, /gallery, /blog, etc.
+  // Si vienen de /author (detectado por referer), redirigirlas al microfrontend AUTHOR
+  
+  // Lista de rutas conocidas del microfrontend AUTHOR
+  const authorRoutes = ['/work', '/about', '/gallery', '/blog'];
+  const isAuthorRoute = authorRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`));
+  
+  if (isAuthorRoute && isFromAuthor) {
+    // Esta es una ruta del microfrontend AUTHOR accedida desde /author
+    const microfrontendUrl = new URL(pathname, MICROFRONTEND_AUTHOR_URL);
+    
+    // Agregar query params si existen
+    request.nextUrl.searchParams.forEach((value: string, key: string) => {
+      microfrontendUrl.searchParams.set(key, value);
+    });
 
-  if (pathname.startsWith('/author')) {
-    microfrontendBaseUrl = MICROFRONTEND_AUTHOR_URL;
-    // Para /author, preservar el path completo incluyendo /author
-    microfrontendPath = pathname;
-  } else if (pathname.startsWith('/simulator') || pathname.startsWith('/onboarding') ) {
-    microfrontendBaseUrl = MICROFRONTEND_SIMULATOR_URL;
-    microfrontendPath = pathname.replace('/simulator', '').replace('/onboarding', '') || '/';
-  } else {
-    return NextResponse.next();
-  }
+    console.log(`[Middleware] Intercepting AUTHOR route: ${pathname} -> ${microfrontendUrl.toString()}`);
 
-  // Interceptar el HTML del microfrontend y reescribir URLs relativas a absolutas
-  try {
-    const microfrontendUrl = new URL(microfrontendPath, microfrontendBaseUrl);
-      
-      // Agregar query params si existen
-      request.nextUrl.searchParams.forEach((value: string, key: string) => {
-        microfrontendUrl.searchParams.set(key, value);
-      });
-
+    try {
       const response = await fetch(microfrontendUrl.toString(), {
         headers: {
           'User-Agent': request.headers.get('user-agent') || '',
@@ -99,9 +251,143 @@ export async function middleware(request: NextRequest) {
         },
       });
 
-      if (!response.ok) {
-        return NextResponse.next();
+      if (response.ok) {
+        let html = await response.text();
+        const baseUrl = MICROFRONTEND_AUTHOR_URL.replace(/\/$/, '');
+        
+        // Reescribir URLs relativas a absolutas
+        html = html.replace(/\s(href|src)=["']([^"']+)["']/gi, (match, attr, url) => {
+          if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//') || url.startsWith('data:') || url.startsWith('#')) {
+            return match;
+          }
+          if (url.startsWith('/')) {
+            return ` ${attr}="${baseUrl}${url}"`;
+          }
+          return match;
+        });
+        
+        // También reescribir en otros lugares (srcset, etc.)
+        html = html.replace(/srcset=["']([^"']+)["']/gi, (match, srcset) => {
+          const rewritten = srcset.split(',').map((item: string) => {
+            const parts = item.trim().split(/\s+/);
+            const url = parts[0];
+            const descriptor = parts.slice(1).join(' ');
+            if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//') || url.startsWith('data:')) {
+              return item;
+            }
+            if (url.startsWith('/')) {
+              return `${baseUrl}${url}${descriptor ? ' ' + descriptor : ''}`;
+            }
+            return item;
+          }).join(', ');
+          return `srcset="${rewritten}"`;
+        });
+
+        return new NextResponse(html, {
+          status: response.status,
+          headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        });
       }
+    } catch (error) {
+      console.error(`[Middleware] Error fetching AUTHOR route ${pathname}:`, error);
+    }
+    
+    // Si falla, continuar con el flujo normal
+    return NextResponse.next();
+  }
+
+  // Determinar qué microfrontend usar según la ruta
+  let microfrontendBaseUrl: string;
+  let microfrontendPath: string;
+
+  // PRIORIDAD: Verificar /author PRIMERO antes que otras rutas
+  if (pathname === '/author' || pathname.startsWith('/author/')) {
+    console.log(`[Middleware] Detected /author route: ${pathname}`);
+    microfrontendBaseUrl = MICROFRONTEND_AUTHOR_URL;
+    // Para /author, siempre ir a la raíz del microfrontend (/)
+    // Para /author/algo, ir a /algo del microfrontend
+    if (pathname === '/author') {
+      microfrontendPath = '/';
+    } else {
+      microfrontendPath = pathname.replace('/author', '');
+    }
+    console.log(`[Middleware] Will fetch: ${microfrontendBaseUrl}${microfrontendPath}`);
+  } else if (pathname.startsWith('/simulator')) {
+    microfrontendBaseUrl = MICROFRONTEND_SIMULATOR_URL;
+    // Para /simulator, preservar el path completo incluyendo /simulator
+    microfrontendPath = pathname;
+  } else if (pathname.startsWith('/onboarding')) {
+    microfrontendBaseUrl = MICROFRONTEND_ONBOARDING_URL;
+    // Para /onboarding, preservar el path completo incluyendo /onboarding
+    microfrontendPath = pathname;
+  } else {
+    return NextResponse.next();
+  }
+
+  // Interceptar el HTML del microfrontend y reescribir URLs relativas a absolutas
+  try {
+    // Asegurar que el path siempre empiece con /
+    const normalizedPath = microfrontendPath.startsWith('/') 
+      ? microfrontendPath 
+      : `/${microfrontendPath}`;
+    
+    const microfrontendUrl = new URL(normalizedPath, microfrontendBaseUrl);
+      
+    // Agregar query params si existen
+    request.nextUrl.searchParams.forEach((value: string, key: string) => {
+      microfrontendUrl.searchParams.set(key, value);
+    });
+
+    console.log(`[Middleware] Fetching: ${microfrontendUrl.toString()} (from ${pathname})`);
+
+    const response = await fetch(microfrontendUrl.toString(), {
+      headers: {
+        'User-Agent': request.headers.get('user-agent') || '',
+        'Accept': request.headers.get('accept') || 'text/html',
+        'Accept-Language': request.headers.get('accept-language') || 'es',
+      },
+    });
+
+    if (!response.ok) {
+      console.error(`[Middleware] Failed to fetch ${microfrontendUrl.toString()}: ${response.status} ${response.statusText}`);
+      // Si es 404 y estamos en /author, intentar redirigir al home
+      if (response.status === 404 && pathname.startsWith('/author') && pathname !== '/author') {
+        console.log(`[Middleware] 404 for ${pathname}, trying home instead`);
+        const homeUrl = new URL('/', microfrontendBaseUrl);
+        const homeResponse = await fetch(homeUrl.toString(), {
+          headers: {
+            'User-Agent': request.headers.get('user-agent') || '',
+            'Accept': request.headers.get('accept') || 'text/html',
+            'Accept-Language': request.headers.get('accept-language') || 'es',
+          },
+        });
+        if (homeResponse.ok) {
+          let html = await homeResponse.text();
+          const baseUrl = microfrontendBaseUrl.replace(/\/$/, '');
+          // Reescribir URLs (usar la misma lógica de abajo)
+          html = html.replace(/\s(href|src)=["']([^"']+)["']/gi, (match, attr, url) => {
+            if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//') || url.startsWith('data:') || url.startsWith('#')) {
+              return match;
+            }
+            if (url.startsWith('/')) {
+              return ` ${attr}="${baseUrl}${url}"`;
+            }
+            return match;
+          });
+          return new NextResponse(html, {
+            status: homeResponse.status,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+            },
+          });
+        }
+      }
+      return NextResponse.next();
+    }
 
       let html = await response.text();
 
@@ -118,13 +404,13 @@ export async function middleware(request: NextRequest) {
         }
         // Si empieza con /, es una ruta absoluta relativa al dominio
         if (url.startsWith('/')) {
-          // Para /author, si la URL no incluye /author, agregarlo para mantener consistencia
-          // Pero solo si estamos en el contexto de /author
-          if (pathname.startsWith('/author') && !url.startsWith('/author') && !url.startsWith('/_next')) {
-            // Para rutas que no son recursos de Next.js, mantenerlas como están
-            // Los recursos de Next.js (_next/static) deben ir directamente al dominio base
+          // Para /author, reescribir URLs a absolutas del microfrontend
+          // Los recursos de Next.js (_next/static) deben ir directamente al dominio base
+          if (url.startsWith('/_next') || url.startsWith('/static') || url.startsWith('/images') || 
+              url.startsWith('/img') || url.startsWith('/assets') || url.startsWith('/public')) {
             return `${baseUrl}${url}`;
           }
+          // Para otras rutas, también usar URLs absolutas del microfrontend
           return `${baseUrl}${url}`;
         }
         // Si es relativa (empieza sin /), mantenerla relativa (puede que funcione)
@@ -239,11 +525,25 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/author',
     '/author/:path*',
+    '/simulator',
     '/simulator/:path*',
+    '/onboarding',
+    '/onboarding/:path*',
+    // Interceptar rutas del microfrontend AUTHOR (para verificar si vienen de /author)
+    '/work',
+    '/work/:path*',
+    '/about',
+    '/about/:path*',
+    '/gallery',
+    '/gallery/:path*',
+    '/blog',
+    '/blog/:path*',
     // También interceptar recursos estáticos que pueden venir de /author
-    '/_next/static/:path*',
+    // IMPORTANTE: _next/image debe estar aquí para interceptar peticiones de optimización de imágenes
     '/_next/image',
+    '/_next/static/:path*',
     '/static/:path*',
     '/images/:path*',
     '/img/:path*',

@@ -40,6 +40,12 @@ const nextConfig: NextConfig = {
         source: "/author/_next/image",
         destination: `${MICROFRONTEND_AUTHOR_URL}/_next/image`,
       },
+      // También interceptar _next/image sin prefijo cuando viene de /author (manejado por middleware)
+      // Pero agregamos un rewrite como fallback
+      {
+        source: "/_next/image",
+        destination: `${MICROFRONTEND_SIMULATOR_URL}/_next/image`,
+      },
       {
         source: "/author/_next/webpack-hmr",
         destination: `${MICROFRONTEND_AUTHOR_URL}/_next/webpack-hmr`,
@@ -121,10 +127,15 @@ const nextConfig: NextConfig = {
         source: "/nuevo/:path*",
         destination: `${MICROFRONTEND_SIMULATOR_URL}/:path*`,
       },
-      // Rutas con sub-paths /simulator/* -> preserva el path
+      // Ruta base /simulator -> redirige a /simulator del microfrontend
+      {
+        source: "/simulator",
+        destination: `${MICROFRONTEND_SIMULATOR_URL}/simulator`,
+      },
+      // Rutas con sub-paths /simulator/* -> preserva el path completo
       {
         source: "/simulator/:path*",
-        destination: `${MICROFRONTEND_SIMULATOR_URL}/:path*`,
+        destination: `${MICROFRONTEND_SIMULATOR_URL}/simulator/:path*`,
       },
       // Ruta base /onboarding -> redirige a /onboarding del microfrontend
       {
