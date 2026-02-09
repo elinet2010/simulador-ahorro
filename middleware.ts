@@ -12,6 +12,61 @@ const MICROFRONTEND_AUTHOR_URL =
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Si es un recurso estático que viene de /author, redirigirlo al microfrontend AUTHOR
+  // Esto es necesario porque los rewrites genéricos redirigen al SIMULATOR
+  if (
+    (pathname.startsWith('/_next/') ||
+     pathname.startsWith('/static/') ||
+     pathname.startsWith('/images/') ||
+     pathname.startsWith('/img/') ||
+     pathname.startsWith('/assets/') ||
+     pathname.startsWith('/public/')) &&
+    request.headers.get('referer')?.includes('/author')
+  ) {
+    // Redirigir recursos estáticos al microfrontend AUTHOR si vienen de /author
+    const resourcePath = pathname;
+    const authorUrl = `${MICROFRONTEND_AUTHOR_URL}${resourcePath}`;
+    
+    try {
+      const resourceResponse = await fetch(authorUrl, {
+        headers: {
+          'User-Agent': request.headers.get('user-agent') || '',
+          'Accept': request.headers.get('accept') || '*/*',
+        },
+      });
+
+      if (resourceResponse.ok) {
+        const resourceData = await resourceResponse.arrayBuffer();
+        return new NextResponse(resourceData, {
+          status: resourceResponse.status,
+          headers: {
+            'Content-Type': resourceResponse.headers.get('content-type') || 'application/octet-stream',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching resource from AUTHOR microfrontend:', error);
+    }
+    
+    // Si falla, continuar con el flujo normal
+    return NextResponse.next();
+  }
+
+  // Si es un recurso estático sin referer de /author, dejar que los rewrites lo manejen
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/static/') ||
+    pathname.startsWith('/images/') ||
+    pathname.startsWith('/img/') ||
+    pathname.startsWith('/assets/') ||
+    pathname.startsWith('/public/')
+  ) {
+    return NextResponse.next();
+  }
+
   // Determinar qué microfrontend usar según la ruta
   let microfrontendBaseUrl: string;
   let microfrontendPath: string;
@@ -63,6 +118,13 @@ export async function middleware(request: NextRequest) {
         }
         // Si empieza con /, es una ruta absoluta relativa al dominio
         if (url.startsWith('/')) {
+          // Para /author, si la URL no incluye /author, agregarlo para mantener consistencia
+          // Pero solo si estamos en el contexto de /author
+          if (pathname.startsWith('/author') && !url.startsWith('/author') && !url.startsWith('/_next')) {
+            // Para rutas que no son recursos de Next.js, mantenerlas como están
+            // Los recursos de Next.js (_next/static) deben ir directamente al dominio base
+            return `${baseUrl}${url}`;
+          }
           return `${baseUrl}${url}`;
         }
         // Si es relativa (empieza sin /), mantenerla relativa (puede que funcione)
@@ -179,6 +241,13 @@ export const config = {
   matcher: [
     '/author/:path*',
     '/simulator/:path*',
+    // También interceptar recursos estáticos que pueden venir de /author
+    '/_next/static/:path*',
+    '/_next/image',
+    '/static/:path*',
+    '/images/:path*',
+    '/img/:path*',
+    '/assets/:path*',
   ],
 };
 

@@ -65,6 +65,8 @@ const nextConfig: NextConfig = {
         destination: `${MICROFRONTEND_AUTHOR_URL}/public/:path*`,
       },
       // Rewrites para recursos estáticos del microfrontend SIMULATOR (CSS, JS, imágenes, etc.)
+      // NOTA: Estos rewrites genéricos se aplican cuando NO hay prefijo de ruta específico
+      // Para /author, los recursos deben usar los rewrites con prefijo /author/ arriba
       {
         source: "/_next/static/:path*",
         destination: `${MICROFRONTEND_SIMULATOR_URL}/_next/static/:path*`,
@@ -134,15 +136,15 @@ const nextConfig: NextConfig = {
         source: "/onboarding/:path*",
         destination: `${MICROFRONTEND_ONBOARDING_URL}/onboarding/:path*`,
       },
-      // Ruta base /author -> redirige a /author del microfrontend
+      // Ruta base /author -> redirige a la raíz del microfrontend AUTHOR
       {
         source: "/author",
-        destination: `${MICROFRONTEND_AUTHOR_URL}`,
+        destination: `${MICROFRONTEND_AUTHOR_URL}/author`,
       },
-      // Rutas con sub-paths /author/* -> preserva el path
+      // Rutas con sub-paths /author/* -> preserva el path completo
       {
         source: "/author/:path*",
-        destination: `${MICROFRONTEND_AUTHOR_URL}/:path*`,
+        destination: `${MICROFRONTEND_AUTHOR_URL}/author/:path*`,
       },
     ];
   },
