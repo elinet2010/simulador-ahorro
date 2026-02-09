@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
 import { Typography, Box } from '@mui/material';
 
 const menuItems = [
@@ -26,7 +25,7 @@ export default function DesktopMenu() {
       {menuItems.map((item) => (
         <Typography
           key={item.label}
-          component={Link}
+          component={"a"}
           href={item.href}
           className={`${active === item.label ? 'active' : ''} header-menu-link`}
         >
