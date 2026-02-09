@@ -141,9 +141,9 @@ export async function middleware(request: NextRequest) {
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[Middleware] Error fetching AUTHOR:', error);
-      if (error.name === 'AbortError') {
+      if (error instanceof Error && error.name === 'AbortError') {
         console.error('[Middleware] Fetch timeout for AUTHOR microfrontend');
       }
     }
@@ -154,11 +154,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Si es un recurso estático que viene de /author, redirigirlo al microfrontend AUTHOR
-  // Esto es necesario porque los rewrites genéricos redirigen al SIMULATOR
+  // Si es un recurso estático que viene de /author o /simulator, redirigirlo al microfrontend correspondiente
+  // Esto es necesario porque los rewrites genéricos pueden redirigir al microfrontend incorrecto
   const referer = request.headers.get('referer');
   const isFromAuthor = referer?.includes('/author');
+  const isFromSimulator = referer?.includes('/simulator');
   
+  // Interceptar recursos estáticos de /author
   if (
     (pathname.startsWith('/_next/') ||
      pathname.startsWith('/static/') ||
@@ -211,7 +213,63 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Si es un recurso estático sin referer de /author, dejar que los rewrites lo manejen
+  // Interceptar recursos estáticos de /simulator
+  // Verificar si es un recurso estático
+  const isSimulatorResource = pathname.startsWith('/_next/') ||
+     pathname.startsWith('/static/') ||
+     pathname.startsWith('/images/') ||
+     pathname.startsWith('/img/') ||
+     pathname.startsWith('/assets/') ||
+     pathname.startsWith('/public/');
+  
+  // Interceptar recursos estáticos que vienen de /simulator
+  // Usar referer para detectar si vienen de /simulator
+  if (isSimulatorResource && isFromSimulator) {
+    // Redirigir recursos estáticos al microfrontend SIMULATOR si vienen de /simulator
+    const resourcePath = pathname;
+    let simulatorUrl: string;
+    
+    // Manejar _next/image especialmente - necesita preservar los query params
+    if (pathname === '/_next/image') {
+      const searchParams = request.nextUrl.searchParams.toString();
+      simulatorUrl = `${MICROFRONTEND_SIMULATOR_URL}${resourcePath}${searchParams ? '?' + searchParams : ''}`;
+      console.log(`[Middleware] Redirecting _next/image to SIMULATOR: ${simulatorUrl} (referer: ${referer || 'none'})`);
+    } else {
+      simulatorUrl = `${MICROFRONTEND_SIMULATOR_URL}${resourcePath}`;
+      console.log(`[Middleware] Redirecting resource to SIMULATOR: ${simulatorUrl} (referer: ${referer || 'none'}, pathname: ${pathname})`);
+    }
+    
+    try {
+      const resourceResponse = await fetch(simulatorUrl, {
+        headers: {
+          'User-Agent': request.headers.get('user-agent') || '',
+          'Accept': request.headers.get('accept') || '*/*',
+        },
+      });
+
+      if (resourceResponse.ok) {
+        const resourceData = await resourceResponse.arrayBuffer();
+        return new NextResponse(resourceData, {
+          status: resourceResponse.status,
+          headers: {
+            'Content-Type': resourceResponse.headers.get('content-type') || 'application/octet-stream',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, OPTIONS',
+            'Cache-Control': 'public, max-age=31536000, immutable',
+          },
+        });
+      } else {
+        console.error(`[Middleware] Failed to fetch resource from SIMULATOR: ${resourceResponse.status} ${resourceResponse.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error fetching resource from SIMULATOR microfrontend:', error);
+    }
+    
+    // Si falla, continuar con el flujo normal
+    return NextResponse.next();
+  }
+
+  // Si es un recurso estático sin referer de /author o /simulator, dejar que los rewrites lo manejen
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/static/') ||
@@ -404,6 +462,17 @@ export async function middleware(request: NextRequest) {
         }
         // Si empieza con /, es una ruta absoluta relativa al dominio
         if (url.startsWith('/')) {
+          // Para /simulator, reescribir recursos estáticos a rutas con prefijo /simulator
+          // para que el middleware pueda interceptarlos correctamente
+          if (pathname.startsWith('/simulator')) {
+            // Los recursos estáticos se reescriben con el prefijo /simulator
+            if (url.startsWith('/_next') || url.startsWith('/static') || url.startsWith('/images') || 
+                url.startsWith('/img') || url.startsWith('/assets') || url.startsWith('/public')) {
+              // Mantener la ruta relativa pero asegurar que el middleware la intercepte
+              // El middleware ya intercepta estos recursos cuando vienen de /simulator
+              return url; // Mantener relativo - el middleware lo interceptará
+            }
+          }
           // Para /author, reescribir URLs a absolutas del microfrontend
           // Los recursos de Next.js (_next/static) deben ir directamente al dominio base
           if (url.startsWith('/_next') || url.startsWith('/static') || url.startsWith('/images') || 
@@ -509,6 +578,7 @@ export async function middleware(request: NextRequest) {
           }
         }
       );
+
 
     return new NextResponse(html, {
       status: response.status,
